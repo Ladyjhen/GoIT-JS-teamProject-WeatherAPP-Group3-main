@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weather App</title>
+<link rel="stylesheet" type="text/css" href="./src/Css/styles.css">
+</head>
+<body>
+
+<div class="container">
+    <form id="searchForm">
+        <input type="text" id="cityInput" placeholder="Enter city name">
+        <button type="submit" value="Search">5 days</button>
+        <button type="submit" value="Search">Today</button>
+        <button id="favoriteBtn">Favorite</button>
+        <label>
+    </form>
+
+    <div>
+        <h1 id="cityName"></h1>
+        <label>
+            <input type="radio" name="unit" value="metric" checked> °C
+        </label>
+        <label>
+            <input type="radio" name="unit" value="imperial"> °F
+        </label>
+
+        <div id="currentforecast" class="currentforecast">current weather</div>
+        <div id="currentdate" class="currentdate">current date</div>
+
+
+    </div>
+
+    <div id="forecast" class="forecast"></div>
+    <div id="weatherInfo" class="weather-info"></div>
+</div>
+
+
+<button id="showGraphBtn">Show Graph</button>
+<canvas id="weatherChart" width="100" height="50" style="display:none;"></canvas>
+
+<script src="./src/JS/fiveDays.js"></script>
+<script src="./src/JS/today.js"></script>
+<script src="./src/JS/favorite.js"></script>
+<script src="./src/JS/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+</html>
