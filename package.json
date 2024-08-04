@@ -21,14 +21,23 @@
     "axios": "^1.7.3",
     "chart": "^0.1.2",
     "chart.js": "^4.4.3",
+    "deasync": "^0.1.30",
+    "install": "^0.13.0",
     "modern-normalize": "^2.0.0",
-    "moment-timezone": "^0.5.45"
+    "moment-timezone": "^0.5.45",
+    "notiflix": "^3.2.7",
+    "npm": "^10.8.2",
+    "siema": "^1.5.1"
   },
   "devDependencies": {
     "@parcel/transformer-sass": "^2.6.0",
+    "buffer": "^6.0.3",
     "parcel": "^2.6.0",
+    "parcel-bundler": "^1.12.5",
+    "parcel-plugin-handlebars-precompile": "^1.0.2",
     "parcel-reporter-clean-dist": "^1.0.4",
-    "posthtml-include": "^2.0.1"
+    "posthtml-include": "^2.0.1",
+    "sass": "^1.77.8"
   },
   "browserslist": [
     "last 1 version",

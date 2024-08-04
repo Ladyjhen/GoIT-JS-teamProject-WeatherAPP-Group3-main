@@ -1,183 +1,236 @@
-document.getElementById('searchForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-    const city = document.getElementById('cityInput').value;
-    fetchWeather(city);
-});
+import Chart from 'chart.js/auto'; //ссылка на chart.js
+let myChart=0
+const jsHiden = document.querySelector('.js-hiden');
+const chartBtnHide = document.querySelector('.chart--btn__show'); //лишка с текстом show Chart
+const hideChart = document.querySelector('.hidden_title'); //лишка с текстом hide Chart
+const showChart = document.querySelector('.chart--btn'); //ссылка на кнопку показать график
+const hidenBtn = document.querySelector('.hidden_btn'); //ссылка на кнопку скрыть график
+const chartView = document.querySelector('.chart--view'); //ссылка на блок с самим графиком
+const ctx = document.querySelector('.myChart').getContext('2d'); //ссылка на canvas
+chartBtnHide.addEventListener('click', onShowBox)
+showChart.addEventListener('click', onShowBox)
+hideChart.addEventListener('click', onHideBox)
+hidenBtn.addEventListener('click', onHideBox)
+//Функция показывает блок графика
+function onShowBox (e){
+   jsHiden.classList.add('hidden') &
+    chartView.classList.remove('hidden')
+  
+}
+//Функция убирает блок графика
+function onHideBox (e){
+    chartView.classList.add('hidden') &
+    jsHiden.classList.remove('hidden') 
+  
+ }
+//Фетч Ольги
+// async function fetchWeather() {
+//   try {
+//       const APIKey = 'daa3c03c1253f276d26e4e127c34d058';
+//       const response = await fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=30.489772&lon=-99.771335&exclude=hourly,minutely&units=metric&appid=${APIKey}`)
+//     const weatherList = await response.json()
+//     console.log(weatherList);
+//       return weatherList.daily
+//   }
+//   catch (error) {
+//     console.log(error)
+//       }
+// }
 
-document.querySelectorAll('input[name="unit"]').forEach(radio => {
-    radio.addEventListener('change', function() {
-        const city = document.getElementById('cityInput').value;
-        if (city) {
-            fetchWeather(city);
-        }
-    });
-});
-
-function getSelectedUnit() {
-    return document.querySelector('input[name="unit"]:checked').value;
+export default function runChart(data) {
+  // fetchWeather().then((response)=>{
+  onHideBox()
+  if (myChart) {
+    myChart.destroy()
+  }
+ const sliceDaily = data.slice(0,5)
+  const dataToChart = processedData(sliceDaily)
+  
+ chartRender(dataToChart, ctx)
+ 
+// })
 }
 
-function fetchWeather(city) {
-    const unit = getSelectedUnit();
-    const apiKey = 'f1a7f601f87c9d97579ef8237cc83ff1';
-    const apiUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=${unit}`;
+//вызываю функцию запроса
+// fetchWeather().then((response)=>{
+//  const sliceDaily = response.slice(0,5)
+//   const dataToChart = processedData(sliceDaily)
+  
+//  chartRender(dataToChart, ctx)
+ 
+// })
 
-    fetch(apiUrl)
-    .then(response => response.json())
-    .then(data => {
-        const forecast = data.list.reduce((acc, item) => {
-            const date = item.dt_txt.split(' ')[0];
-            if (!acc[date]) {
-                acc[date] = [];
-            }
-            acc[date].push(item);
-            return acc;
-        }, {});
 
-        displayForecast(forecast);
-        prepareChartData(forecast);
-    })
-    .catch(error => {
-        console.error('Error fetching data:', error);
-    });
-}
-
-function displayForecast(forecast) {
-    const forecastContainer = document.getElementById('forecast');
-    const unit = getSelectedUnit();
-    const unitSymbol = unit === 'metric' ? '°C' : '°F';
-    forecastContainer.innerHTML = '';
-
-    for (const date in forecast) {
-        const dayForecast = forecast[date];
-        const minTemp = Math.min(...dayForecast.map(item => item.main.temp_min));
-        const maxTemp = Math.max(...dayForecast.map(item => item.main.temp_max));
-        const dayElement = document.createElement('div');
-        dayElement.classList.add('day');
-        const iconUrl = `https://openweathermap.org/img/w/${dayForecast[0].weather[0].icon}.png`;
-        dayElement.innerHTML = `
-            <div>${new Date(dayForecast[0].dt * 1000).toDateString()}</div>
-            <img src="${iconUrl}" alt="${dayForecast[0].weather[0].description}">
-            <div>Min Temp: ${minTemp}${unitSymbol}</div>
-            <div>Max Temp: ${maxTemp}${unitSymbol}</div>
-        `;
-        dayElement.addEventListener('click', function() {
-            displayWeatherInfo(dayForecast);
-        });
-        forecastContainer.appendChild(dayElement);
+//обработчик данных для графика
+const processedData = (obj)=>{
+  const getDateTxt = data => new Date(data.dt * 1000).toDateString()
+    const proData = {
+      data: obj.map(elem=>getDateTxt(elem).slice(4,getDateTxt(elem).length)),
+      temp: obj.map(elem=>elem.temp.day),
+      humidity: obj.map(elem=>elem.humidity),
+      speed: obj.map(elem=>elem.wind_speed),
+      pressure: obj.map(elem=>elem.pressure),
     }
-}
+    return proData
+  }
 
-function displayWeatherInfo(weatherData) {
-    const weatherInfoContainer = document.getElementById('weatherInfo');
-    const unit = getSelectedUnit();
-    const unitSymbol = unit === 'metric' ? '°C' : '°F';
-    weatherInfoContainer.innerHTML = '';
 
-    weatherData.forEach(item => {
-        const weatherElement = document.createElement('div');
-        const time = new Date(item.dt * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        const temperature = item.main.temp;
-        const description = item.weather[0].description;
-        const clouds = item.clouds.all;
-        const windSpeed = item.wind.speed;
-        const visibility = item.visibility / 1000; // Convert visibility to kilometers
-        const iconUrl = `https://openweathermap.org/img/w/${item.weather[0].icon}.png`;
-
-        weatherElement.innerHTML = `
-            <div>${time}</div>
-            <img src="${iconUrl}" alt="${description}">
-            <div>Temperature: ${temperature}${unitSymbol}</div>
-            <div>Description: ${description}</div>
-            <div>Clouds: ${clouds}% <img src="cloud-icon.png" alt="Clouds"></div>
-            <div>Wind Speed: ${windSpeed} m/s <img src="wind-icon.png" alt="Wind"></div>
-            <div>Visibility: ${visibility} km <img src="visibility-icon.png" alt="Visibility"></div>
-        `;
-        weatherInfoContainer.appendChild(weatherElement);
-    });
-
-    weatherInfoContainer.classList.remove('hide');
-}
-
-function prepareChartData(forecast) {
-    const labels = Object.keys(forecast);
-    const temperatures = [];
-    const humidities = [];
-    const windSpeeds = [];
-    const pressures = [];
-
-    for (const date in forecast) {
-        const dayForecast = forecast[date];
-        const avgTemp = dayForecast.reduce((sum, item) => sum + item.main.temp, 0) / dayForecast.length;
-        const avgHumidity = dayForecast.reduce((sum, item) => sum + item.main.humidity, 0) / dayForecast.length;
-        const avgWindSpeed = dayForecast.reduce((sum, item) => sum + item.wind.speed, 0) / dayForecast.length;
-        const avgPressure = dayForecast.reduce((sum, item) => sum + item.main.pressure, 0) / dayForecast.length;
-        
-        temperatures.push(avgTemp);
-        humidities.push(avgHumidity);
-        windSpeeds.push(avgWindSpeed);
-        pressures.push(avgPressure);
-    }
-
-    displayChart(labels, temperatures, humidities, windSpeeds, pressures);
-}
-
-function displayChart(labels, temperatures, humidities, windSpeeds, pressures) {
-    const ctx = document.getElementById('weatherChart').getContext('2d');
-    const chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'Temperature (°C)',
-                    data: temperatures,
-                    borderColor: 'orange',
-                    fill: false
-                },
-                {
-                    label: 'Humidity (%)',
-                    data: humidities,
-                    borderColor: 'blue',
-                    fill: false
-                },
-                {
-                    label: 'Wind Speed (m/s)',
-                    data: windSpeeds,
-                    borderColor: 'black',
-                    fill: false
-                },
-                {
-                    label: 'Pressure (hPa)',
-                    data: pressures,
-                    borderColor: 'green',
-                    fill: false
-                }
-            ]
+//Функция принимает массив объектов(уже готовых данных) и ссылку на график 
+function chartRender(labels, link,){
+  
+   const configCahrt = {
+      type: 'line',
+      data: {
+          labels: labels.data,
+          datasets: [{
+              label: '— Temperature, C°'+resize(),
+              data: labels.temp,
+              tension: 0.2,
+              fill: false,
+              backgroundColor: 'rgba(255, 107, 9, 1)',
+              borderColor: 'rgba(255, 107, 9, 1)',
+              borderWidth: 1
+          },
+          {
+            label: '— Humidity, %'+resize(),
+            data: labels.humidity,
+            tension: 0.2,
+            fill: false,
+            backgroundColor: 
+                'rgba(9, 6, 235, 1)',
+            borderColor: 
+                'rgba(9, 6, 235, 1)',
+            borderWidth: 1
         },
-        options: {
-            responsive: true,
-            scales: {
-                x: {
-                    display: true,
-                    title: {
-                        display: true,
-                        text: 'Date'
-                    }
-                },
-                y: {
-                    display: true,
-                    title: {
-                        display: true,
-                        text: 'Value'
-                    }
-                }
-            }
+        {
+          label: '— Wind Speed, m/s'+resize(),
+          data: labels.speed,
+          tension: 0.2,
+          fill: false,
+          backgroundColor: [
+              'rgba(234, 154, 5, 1)',
+          ],
+          borderColor: [
+              'rgba(234, 154, 5, 1)',
+          ],
+          borderWidth: 1
+      },
+      {
+        label: '— Atmosphere Pressure, m/m',
+        data: labels.pressure,
+        tension: 0.2,
+        fill: false,
+        backgroundColor: 
+            'rgba(6, 120, 6, 1)',
+        borderColor:
+            'rgba(6, 120, 6, 1)',
+        borderWidth: 1
+      }],
+    },
+    options: {
+      layout: {
+        padding: {
+            left: 0,
+            bottom: 20,
         }
-    });
+    },
+      plugins: {
+        legend: {
+          display: true,
+          align: 'start',
+          // fullSize: false,
+          // maxWidth: 20,
+          // maxHeight: 210,
+          labels: {
+            boxWidth: 15,
+            boxHeight: 12,
+            defaultFontColor: 'rgb(5, 120, 6)',
+            color: 'rgba(247, 242, 242, 1)',
+            padding:10,
+          },
+        
+        },
+        title: {
+          display: false,
+          text: 'Value of indicators',
+          position: 'left',
+          // padding: {
+          //   top: 5,
+          //   bottom: 5
+          // },
+          padding: 0,
+          fullSize: false,
+        },
+        
+      },
+      
+      scales: {
+        x: {
+          grid: {
+            color: 'rgba(255, 255, 255, 0.4)',
+            borderColor: 'rgba(255, 255, 255, 1)'
+          },
+          ticks: {
+            padding: 18,
+            color: 'rgba(255, 255, 255, 0.7)',
+          },
+        },
+        y: {
+          grid: {
+            color: 'rgba(255, 255, 255, 0.4)',
+            borderColor: 'rgba(255, 255, 255, 1)',
+           
+          },
+          ticks: {
+            padding: 18,
+            color: 'rgba(255, 255, 255, 0.7)',
+          },
+        },
+      },
+    responsive: true,
+    maintainAspectRatio: false,
+    devicePixelRatio: 2,
+    }
+  }
+  
+  myChart = new Chart(link, configCahrt);
+  // console.dir(myChart);
 }
 
-document.getElementById('showGraphBtn').addEventListener('click', function() {
-    const chartElement = document.getElementById('weatherChart');
-    chartElement.style.display = 'block';
-});
+//это супер костыль (не трогать)
+function resize(){
+  if(window.outerWidth <= 767) {
+    return "                                       "
+ }else{
+   return ''
+ }
+}
+
+export {
+  jsHiden, 
+  chartBtnHide,
+  hideChart, 
+  showChart, 
+  hidenBtn,
+  chartView, 
+  ctx, 
+  onShowBox, 
+  onHideBox,
+  processedData,
+  chartRender,
+  resize,
+
+} 
+
+
+     
+
+
+
+
+
+
+
+
+
+
